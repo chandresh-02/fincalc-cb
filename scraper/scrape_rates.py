@@ -162,11 +162,31 @@ def build_output(previous, repo_rate, scheme_rates, repo_ok, schemes_found):
     return out
 
 
-def fetch(url):
+def fetch(url, attempts=3, timeout=60, backoff_seconds=5):
+    """Fetch a URL with retries and a generous timeout. Indian government
+    sites are sometimes just slow to respond to requests from GitHub's
+    (US/EU-hosted) runners — a single 30s timeout on the first attempt
+    isn't enough evidence of an actual block, so we retry before giving up."""
     import urllib.request
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return resp.read().decode("utf-8", errors="replace")
+    import time
+
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-IN,en;q=0.9",
+    }
+    last_error = None
+    for attempt in range(1, attempts + 1):
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return resp.read().decode("utf-8", errors="replace")
+        except Exception as e:
+            last_error = e
+            print(f"  attempt {attempt}/{attempts} for {url} failed: {e}", file=sys.stderr)
+            if attempt < attempts:
+                time.sleep(backoff_seconds)
+    raise last_error
 
 
 def main(output_path="rates.json"):
