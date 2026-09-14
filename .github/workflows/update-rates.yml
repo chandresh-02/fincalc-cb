@@ -25,6 +25,19 @@ jobs:
       - name: Install dependencies
         run: pip install beautifulsoup4
 
+      - name: Network diagnostics
+        # Doesn't affect the job's pass/fail — purely informational, so we
+        # can see in the log whether GitHub's network reaches these sites
+        # at all, and how long each one takes (or doesn't).
+        continue-on-error: true
+        run: |
+          echo "--- Control (a definitely-reachable site) ---"
+          curl -sS -m 15 -o /dev/null -w "HTTP %{http_code} in %{time_total}s\n" https://www.google.com || echo "FAILED to reach google.com"
+          echo "--- RBI ---"
+          curl -sS -m 30 -o /dev/null -w "HTTP %{http_code} in %{time_total}s\n" "https://www.rbi.org.in/Home.aspx/Home.aspx/home.aspx" || echo "FAILED to reach RBI"
+          echo "--- India Post ---"
+          curl -sS -m 30 -o /dev/null -w "HTTP %{http_code} in %{time_total}s\n" "https://app.indiapost.gov.in/banking-services/saving" || echo "FAILED to reach India Post"
+
       - name: Run scraper
         # rates.json is written at the repo root (next to index.html) so the
         # app can fetch it with a plain relative path — not inside scraper/.
