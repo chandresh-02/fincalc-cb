@@ -1,0 +1,16 @@
+## 1. Current Rates
+
+### [Policy Rates](javascript:void(0);)
+
+| Policy Repo Rate                | :  5.25% |
+| ------------------------------- | -------- |
+| Standing Deposit Facility Rate  | :  5.00% |
+| Marginal Standing Facility Rate | :  5.50% |
+| Bank Rate                       | :  5.50% |
+| Fixed Reverse Repo Rate         | :  3.35% |
+
+### [Reserve Ratios](javascript:void(0);)
+
+| CRR | :  3.00%  |
+| --- | --------- |
+| SLR | :  18.00% |
