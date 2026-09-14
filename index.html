@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FinCalc CB — Financial Calculator Suite</title>
+<meta name="description" content="Loan/EMI, income tax, GST, savings, mutual fund and government scheme calculators — offline, in English, Hindi and Gujarati.">
+<meta name="theme-color" content="#0f2236">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FinCalc CB">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <header class="app-header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      <div class="brand">
+        <span class="brand-mark">FinCalc <span class="accent">CB</span></span>
+        <span class="brand-tag" data-i18n="appTag">Financial Calculator Suite</span>
+      </div>
+    </div>
+    <div class="header-controls">
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="hi">हिं</button>
+        <button data-lang="gu">ગુજ</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="nav-scrim" id="navScrim"></div>
+  <nav class="app-nav" id="appNav">
+    <div class="nav-group">
+      <div class="nav-group-label" data-i18n="nav_group_general">General</div>
+      <button class="nav-item active" data-view="basic"><span class="ic">🧮</span><span data-i18n="nav_basic">Basic / Scientific</span></button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" data-i18n="nav_group_loans">Loans</div>
+      <button class="nav-item" data-view="emi"><span class="ic">🏦</span><span data-i18n="nav_emi">Loan &amp; EMI</span></button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" data-i18n="nav_group_tax">Tax</div>
+      <button class="nav-item" data-view="tax"><span class="ic">🧾</span><span data-i18n="nav_tax">Income Tax</span></button>
+      <button class="nav-item" data-view="gst"><span class="ic">📊</span><span data-i18n="nav_gst">GST &amp; VAT</span></button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" data-i18n="nav_group_invest">Savings &amp; Investments</div>
+      <button class="nav-item" data-view="savings"><span class="ic">💰</span><span data-i18n="nav_savings">Savings / FD / RD</span></button>
+      <button class="nav-item" data-view="mf"><span class="ic">📈</span><span data-i18n="nav_mf">Mutual Fund SIP &amp; Lumpsum</span></button>
+      <button class="nav-item" data-view="schemes"><span class="ic">🏛️</span><span data-i18n="nav_schemes">Govt. Savings Schemes</span></button>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label" data-i18n="nav_group_other">Other</div>
+      <button class="nav-item" data-view="settings"><span class="ic">⚙️</span><span data-i18n="nav_settings">Settings</span></button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ============ BASIC / SCIENTIFIC ============ -->
+    <section class="view active" data-view="basic">
+      <h1 class="view-title" data-i18n="basic_title">Basic / Scientific Calculator</h1>
+      <div class="card calc-shell">
+        <div class="calc-display">
+          <div class="expr" id="calcExpr"></div>
+          <div class="cur" id="calcDisplay">0</div>
+        </div>
+        <div class="calc-pad" id="calcPad">
+          <button class="fn" data-fn="sin">sin</button>
+          <button class="fn" data-fn="cos">cos</button>
+          <button class="fn" data-fn="tan">tan</button>
+          <button class="fn" data-fn="log">log</button>
+          <button class="fn" data-fn="ln">ln</button>
+          <button class="fn" data-fn="sqrt">√x</button>
+          <button class="fn" data-fn="sq">x²</button>
+          <button class="fn" data-fn="inv">1/x</button>
+
+          <button class="op" id="calcClear" data-i18n="basic_clear">Clear</button>
+          <button class="op" id="calcBack">⌫</button>
+          <button class="op" id="calcPercent">%</button>
+          <button class="op" data-op="÷">÷</button>
+
+          <button data-digit="7">7</button>
+          <button data-digit="8">8</button>
+          <button data-digit="9">9</button>
+          <button class="op" data-op="×">×</button>
+
+          <button data-digit="4">4</button>
+          <button data-digit="5">5</button>
+          <button data-digit="6">6</button>
+          <button class="op" data-op="−">−</button>
+
+          <button data-digit="1">1</button>
+          <button data-digit="2">2</button>
+          <button data-digit="3">3</button>
+          <button class="op" data-op="+">+</button>
+
+          <button id="calcSign">±</button>
+          <button data-digit="0" class="zero">0</button>
+          <button id="calcDot">.</button>
+          <button class="eq" id="calcEquals">=</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LOAN / EMI ============ -->
+    <section class="view" data-view="emi">
+      <h1 class="view-title" data-i18n="loan_title">Loan &amp; EMI Calculator</h1>
+      <div class="card">
+        <div class="field-grid">
+          <div class="field">
+            <label data-i18n="loan_method">Method</label>
+            <select id="loanMethod">
+              <option value="reducing" data-i18n="loan_method_reducing">Reducing Balance</option>
+              <option value="fixed" data-i18n="loan_method_fixed">Fixed Rate (whole tenure)</option>
+              <option value="floating" data-i18n="loan_method_floating">Floating Rate (repo-linked)</option>
+              <option value="flat" data-i18n="loan_method_flat">Flat Rate (for comparison)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label data-i18n="loan_principal">Loan amount (₹)</label>
+            <input type="number" id="loanPrincipal" value="2500000" min="0">
+          </div>
+          <div class="field" id="loanFixedRateField">
+            <label data-i18n="loan_rate">Interest rate (% p.a.)</label>
+            <input type="number" id="loanRate" value="8.5" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="loan_tenure_years">Tenure (years)</label>
+            <input type="number" id="loanTenureYears" value="20" min="0" step="0.5">
+          </div>
+        </div>
+
+        <div id="loanFloatingFields" style="display:none; margin-top:14px; padding-top:14px; border-top:1px dashed var(--border);">
+          <div class="field-grid">
+            <div class="field">
+              <label data-i18n="loan_repo_rate">Current RBI repo rate (%)</label>
+              <input type="number" id="loanRepoRate" step="0.01" min="0">
+            </div>
+            <div class="field">
+              <label data-i18n="loan_spread">Bank spread / margin over repo (%)</label>
+              <input type="number" id="loanSpread" value="2.0" step="0.01" min="0">
+            </div>
+            <div class="field">
+              <label data-i18n="loan_effective_rate">Effective floating rate (%)</label>
+              <div class="result-tile navy" style="padding:9px 11px;"><span class="v" id="loanEffectiveRateDisplay" style="font-size:15px;">—</span></div>
+            </div>
+          </div>
+          <button class="btn ghost small" id="loanAddRateChange" style="margin-top:12px;" data-i18n="loan_add_rate_change">+ Add a future rate change</button>
+          <div id="loanRateChangeList"></div>
+        </div>
+
+        <div id="loanFlatNote" class="disclaimer" style="display:none;" data-i18n="loan_method_flat">Flat Rate (for comparison)</div>
+
+        <div class="btn-row">
+          <button class="btn primary" id="loanCalcBtn" data-i18n="loan_calculate">Calculate EMI</button>
+        </div>
+
+        <div class="result-strip">
+          <div class="result-tile"><div class="k" data-i18n="loan_result_emi">Monthly EMI</div><div class="v" id="loanResultEmi">—</div></div>
+          <div class="result-tile navy"><div class="k" data-i18n="loan_result_total_interest">Total interest payable</div><div class="v" id="loanResultTotalInterest">—</div></div>
+          <div class="result-tile navy"><div class="k" data-i18n="loan_result_total_payment">Total payment (principal + interest)</div><div class="v" id="loanResultTotalPayment">—</div></div>
+        </div>
+
+        <div class="disclaimer" id="loanFlatCompare" style="display:none;">
+          <span id="loanFlatCompareText"></span>
+        </div>
+
+        <div class="table-wrap" id="loanScheduleWrap" style="display:none;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th data-i18n="loan_schedule_month">Month</th>
+                <th data-i18n="loan_schedule_emi">EMI (₹)</th>
+                <th data-i18n="loan_schedule_principal">Principal (₹)</th>
+                <th data-i18n="loan_schedule_interest">Interest (₹)</th>
+                <th data-i18n="loan_schedule_balance">Balance (₹)</th>
+              </tr>
+            </thead>
+            <tbody id="loanScheduleBody"></tbody>
+          </table>
+        </div>
+
+        <div class="btn-row no-print">
+          <button class="btn ghost small" id="loanExportCsv" data-i18n="loan_export_csv">Export schedule (Excel/CSV)</button>
+          <button class="btn ghost small" id="loanExportPdf" data-i18n="loan_export_pdf">Export summary (PDF / Print)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ INCOME TAX ============ -->
+    <section class="view" data-view="tax">
+      <h1 class="view-title" data-i18n="tax_title">Income Tax Calculator</h1>
+      <div class="card">
+        <div class="field-grid">
+          <div class="field">
+            <label data-i18n="tax_gross_income">Gross annual income (₹)</label>
+            <input type="number" id="taxGrossIncome" value="1200000" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="tax_age_band">Age category</label>
+            <select id="taxAgeBand">
+              <option value="below60" data-i18n="tax_age_below60">Below 60</option>
+              <option value="senior60to80" data-i18n="tax_age_60to80">Senior citizen (60–80)</option>
+              <option value="superSenior80plus" data-i18n="tax_age_80plus">Super senior citizen (80+)</option>
+            </select>
+          </div>
+          <div class="field span2">
+            <label data-i18n="tax_deductions">Old regime deductions (80C, 80D, HRA, home loan interest, etc.) (₹)</label>
+            <input type="number" id="taxDeductions" value="150000" min="0">
+            <div class="hint" data-i18n="tax_deductions_hint">Old regime standard deduction ₹50,000 is added automatically.</div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="taxCalcBtn" data-i18n="tax_calculate">Calculate &amp; Compare</button>
+        </div>
+
+        <div class="verdict-banner" id="taxVerdictBanner" style="display:none;"></div>
+
+        <div class="regime-compare">
+          <div class="regime-card" id="taxCard_new">
+            <h3><span data-i18n="tax_new_regime">New Regime</span><span class="badge" style="display:none;">✓</span></h3>
+            <div class="line-row"><span data-i18n="tax_taxable_income">Taxable income</span><span class="val" data-f="taxableIncome">—</span></div>
+            <div class="line-row"><span data-i18n="tax_before_rebate">Tax before rebate</span><span class="val" data-f="taxBeforeRebate">—</span></div>
+            <div class="line-row"><span data-i18n="tax_rebate">Section 87A rebate</span><span class="val" data-f="rebate87A">—</span></div>
+            <div class="line-row"><span data-i18n="tax_surcharge">Surcharge</span><span class="val" data-f="surcharge">—</span></div>
+            <div class="line-row"><span data-i18n="tax_cess">Health &amp; Education Cess (4%)</span><span class="val" data-f="cess">—</span></div>
+            <div class="line-row total"><span data-i18n="tax_total_tax">Total tax payable</span><span class="val" data-f="totalTax">—</span></div>
+            <div class="line-row"><span data-i18n="tax_effective_rate">Effective tax rate</span><span class="val" data-f="effectiveRate">—</span></div>
+          </div>
+          <div class="regime-card" id="taxCard_old">
+            <h3><span data-i18n="tax_old_regime">Old Regime</span><span class="badge" style="display:none;">✓</span></h3>
+            <div class="line-row"><span data-i18n="tax_taxable_income">Taxable income</span><span class="val" data-f="taxableIncome">—</span></div>
+            <div class="line-row"><span data-i18n="tax_before_rebate">Tax before rebate</span><span class="val" data-f="taxBeforeRebate">—</span></div>
+            <div class="line-row"><span data-i18n="tax_rebate">Section 87A rebate</span><span class="val" data-f="rebate87A">—</span></div>
+            <div class="line-row"><span data-i18n="tax_surcharge">Surcharge</span><span class="val" data-f="surcharge">—</span></div>
+            <div class="line-row"><span data-i18n="tax_cess">Health &amp; Education Cess (4%)</span><span class="val" data-f="cess">—</span></div>
+            <div class="line-row total"><span data-i18n="tax_total_tax">Total tax payable</span><span class="val" data-f="totalTax">—</span></div>
+            <div class="line-row"><span data-i18n="tax_effective_rate">Effective tax rate</span><span class="val" data-f="effectiveRate">—</span></div>
+          </div>
+        </div>
+
+        <div class="disclaimer" data-i18n="tax_disclaimer">Estimate only.</div>
+
+        <div class="btn-row no-print">
+          <button class="btn ghost small" id="taxExportPdf" data-i18n="tax_export_pdf">Export comparison (PDF / Print)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ GST / VAT ============ -->
+    <section class="view" data-view="gst">
+      <h1 class="view-title" data-i18n="gst_title">GST &amp; VAT Calculator</h1>
+
+      <div class="card">
+        <h2 data-i18n="gst_title">GST &amp; VAT Calculator</h2>
+        <div class="field-grid">
+          <div class="field">
+            <label data-i18n="gst_mode">Mode</label>
+            <select id="gstMode">
+              <option value="add" data-i18n="gst_mode_add">Add tax to amount</option>
+              <option value="remove" data-i18n="gst_mode_remove">Extract tax from amount (inclusive price)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label data-i18n="gst_amount">Amount (₹)</label>
+            <input type="number" id="gstAmount" value="1000" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="gst_rate">GST rate (%)</label>
+            <select id="gstRate">
+              <option value="0">0%</option>
+              <option value="5">5%</option>
+              <option value="18" selected>18%</option>
+              <option value="40">40%</option>
+            </select>
+            <div class="hint" data-i18n="gst_rate_hint">Current GST 2.0 slabs.</div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="gstCalcBtn" data-i18n="gst_calculate">Calculate</button>
+        </div>
+        <div class="result-strip" id="gstResults" style="display:none;">
+          <div class="result-tile navy"><div class="k" data-i18n="gst_base_amount">Base amount</div><div class="v" id="gstResultBase">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="gst_gst_amount">GST amount</div><div class="v" id="gstResultGst">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="gst_cgst">CGST (half)</div><div class="v" id="gstResultCgst">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="gst_sgst">SGST (half)</div><div class="v" id="gstResultSgst">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="gst_igst">IGST (full)</div><div class="v" id="gstResultIgst">—</div></div>
+          <div class="result-tile navy"><div class="k" data-i18n="gst_total">Total amount</div><div class="v" id="gstResultTotal">—</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="vat_title">VAT Calculator</h2>
+        <div class="disclaimer" data-i18n="vat_hint">VAT hint</div>
+        <div class="field-grid" style="margin-top:12px;">
+          <div class="field">
+            <label data-i18n="gst_mode">Mode</label>
+            <select id="vatMode">
+              <option value="add" data-i18n="gst_mode_add">Add tax to amount</option>
+              <option value="remove" data-i18n="gst_mode_remove">Extract tax from amount (inclusive price)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label data-i18n="gst_amount">Amount (₹)</label>
+            <input type="number" id="vatAmount" value="1000" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="vat_rate">VAT rate (%)</label>
+            <input type="number" id="vatRate" value="20" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="vatCalcBtn" data-i18n="gst_calculate">Calculate</button>
+        </div>
+        <div class="result-strip" id="vatResults" style="display:none;">
+          <div class="result-tile navy"><div class="k" data-i18n="gst_base_amount">Base amount</div><div class="v" id="vatResultBase">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="gst_gst_amount">VAT amount</div><div class="v" id="vatResultAmount">—</div></div>
+          <div class="result-tile navy"><div class="k" data-i18n="gst_total">Total amount</div><div class="v" id="vatResultTotal">—</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SAVINGS / FD / RD ============ -->
+    <section class="view" data-view="savings">
+      <h1 class="view-title" data-i18n="savings_title">Savings, FD &amp; RD Calculator</h1>
+      <div class="card">
+        <div class="field-grid">
+          <div class="field">
+            <label data-i18n="savings_type">Type</label>
+            <select id="savingsType">
+              <option value="ci" data-i18n="savings_type_ci">Simple Compound Interest</option>
+              <option value="fd" data-i18n="savings_type_fd">Fixed Deposit (FD)</option>
+              <option value="rd" data-i18n="savings_type_rd">Recurring Deposit (RD)</option>
+            </select>
+          </div>
+          <div class="field" id="savingsPrincipalField">
+            <label data-i18n="savings_principal">Principal amount (₹)</label>
+            <input type="number" id="savingsPrincipal" value="100000" min="0">
+          </div>
+          <div class="field" id="savingsMonthlyField" style="display:none;">
+            <label data-i18n="savings_monthly">Monthly deposit (₹)</label>
+            <input type="number" id="savingsMonthly" value="5000" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="savings_rate">Interest rate (% p.a.)</label>
+            <input type="number" id="savingsRate" value="7" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="savings_years">Tenure (years)</label>
+            <input type="number" id="savingsYears" value="5" min="0" step="0.5">
+          </div>
+          <div class="field" id="savingsCompoundingField">
+            <label data-i18n="savings_compounding">Compounding frequency</label>
+            <select id="savingsCompounding">
+              <option value="annual" data-i18n="savings_compounding_annual">Annually</option>
+              <option value="quarterly" selected data-i18n="savings_compounding_quarterly">Quarterly</option>
+              <option value="monthly" data-i18n="savings_compounding_monthly">Monthly</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="savingsCalcBtn" data-i18n="savings_calculate">Calculate</button>
+        </div>
+        <div class="result-strip" id="savingsResults" style="display:none;">
+          <div class="result-tile navy"><div class="k" data-i18n="savings_maturity">Maturity amount</div><div class="v" id="savingsResultMaturity">—</div></div>
+          <div class="result-tile navy"><div class="k" data-i18n="savings_invested">Total invested</div><div class="v" id="savingsResultInvested">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="savings_interest">Interest earned</div><div class="v" id="savingsResultInterest">—</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MUTUAL FUND ============ -->
+    <section class="view" data-view="mf">
+      <h1 class="view-title" data-i18n="mf_title">Mutual Fund — SIP &amp; Lumpsum Calculator</h1>
+      <div class="card">
+        <div class="field-grid">
+          <div class="field">
+            <label data-i18n="mf_mode">Mode</label>
+            <select id="mfMode">
+              <option value="sip" data-i18n="mf_mode_sip">SIP (monthly)</option>
+              <option value="lumpsum" data-i18n="mf_mode_lumpsum">Lumpsum</option>
+              <option value="target" data-i18n="mf_mode_target">Target corpus (find required SIP)</option>
+            </select>
+          </div>
+          <div class="field" id="mfMonthlyField">
+            <label data-i18n="mf_monthly_amount">Monthly SIP amount (₹)</label>
+            <input type="number" id="mfMonthlyAmount" value="5000" min="0">
+          </div>
+          <div class="field" id="mfLumpsumField" style="display:none;">
+            <label data-i18n="mf_lumpsum_amount">Lumpsum amount (₹)</label>
+            <input type="number" id="mfLumpsumAmount" value="100000" min="0">
+          </div>
+          <div class="field" id="mfTargetField" style="display:none;">
+            <label data-i18n="mf_target_amount">Target corpus (₹)</label>
+            <input type="number" id="mfTargetAmount" value="5000000" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="mf_expected_return">Expected annual return (%)</label>
+            <input type="number" id="mfExpectedReturn" value="12" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="mf_years">Investment period (years)</label>
+            <input type="number" id="mfYears" value="10" min="0" step="0.5">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="mfCalcBtn" data-i18n="mf_calculate">Calculate</button>
+        </div>
+        <div class="result-strip" id="mfResults" style="display:none;">
+          <div class="result-tile navy"><div class="k" data-i18n="mf_maturity">Estimated maturity value</div><div class="v" id="mfResultMaturity">—</div></div>
+          <div class="result-tile navy"><div class="k" data-i18n="mf_invested">Total invested</div><div class="v" id="mfResultInvested">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="mf_gains">Estimated gains</div><div class="v" id="mfResultGains">—</div></div>
+          <div class="result-tile" id="mfRequiredSipRow" style="display:none;"><div class="k" data-i18n="mf_required_sip">Required monthly SIP</div><div class="v" id="mfResultRequiredSip">—</div></div>
+        </div>
+        <div class="disclaimer" data-i18n="mf_disclaimer">Mutual fund returns are market-linked.</div>
+      </div>
+    </section>
+
+    <!-- ============ GOVT SCHEMES ============ -->
+    <section class="view" data-view="schemes">
+      <h1 class="view-title" data-i18n="schemes_title">Government Savings Scheme Calculators</h1>
+      <div class="disclaimer" id="schemesRateNote" data-i18n="schemes_rate_note">Rate note.</div>
+
+      <div class="card">
+        <h2 data-i18n="schemes_ppf">Public Provident Fund (PPF)</h2>
+        <div class="field-grid">
+          <div class="field">
+            <label data-i18n="schemes_ppf_contribution">Annual contribution (₹, max ₹1,50,000)</label>
+            <input type="number" id="ppfContribution" value="150000" min="500" max="150000">
+          </div>
+          <div class="field">
+            <label data-i18n="schemes_rate">Interest rate (% p.a.)</label>
+            <input type="number" id="ppfRate" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="schemes_ppf_years">Tenure (years, min. 15)</label>
+            <input type="number" id="ppfYears" value="15" min="15" step="5">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="ppfCalcBtn" data-i18n="schemes_calculate">Calculate</button>
+        </div>
+        <div class="result-strip" id="ppfResults" style="display:none;">
+          <div class="result-tile navy"><div class="k" data-i18n="schemes_maturity">Maturity amount</div><div class="v" id="ppfResultMaturity">—</div></div>
+          <div class="result-tile navy"><div class="k" data-i18n="schemes_invested">Total invested</div><div class="v" id="ppfResultInvested">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="schemes_interest">Interest earned</div><div class="v" id="ppfResultInterest">—</div></div>
+        </div>
+        <div class="btn-row no-print">
+          <button class="btn ghost small" id="ppfExportCsv" data-i18n="schemes_export_csv">Export year-wise growth (Excel/CSV)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="schemes_nsc">National Savings Certificate (NSC)</h2>
+        <div class="field-grid">
+          <div class="field">
+            <label data-i18n="schemes_nsc_amount">Investment amount (₹)</label>
+            <input type="number" id="nscAmount" value="100000" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="schemes_rate">Interest rate (% p.a.)</label>
+            <input type="number" id="nscRate" step="0.01" min="0">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="nscCalcBtn" data-i18n="schemes_calculate">Calculate</button>
+        </div>
+        <div class="result-strip" id="nscResults" style="display:none;">
+          <div class="result-tile navy"><div class="k" data-i18n="schemes_maturity">Maturity amount</div><div class="v" id="nscResultMaturity">—</div></div>
+          <div class="result-tile navy"><div class="k" data-i18n="schemes_invested">Total invested</div><div class="v" id="nscResultInvested">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="schemes_interest">Interest earned</div><div class="v" id="nscResultInterest">—</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="schemes_kvp">Kisan Vikas Patra (KVP)</h2>
+        <div class="field-grid">
+          <div class="field">
+            <label data-i18n="schemes_kvp_amount">Investment amount (₹)</label>
+            <input type="number" id="kvpAmount" value="100000" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="schemes_rate">Interest rate (% p.a.)</label>
+            <input type="number" id="kvpRate" step="0.01" min="0">
+          </div>
+          <div class="field">
+            <label data-i18n="loan_tenure_months">Tenure (months)</label>
+            <input type="number" id="kvpMonths" min="0">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="kvpCalcBtn" data-i18n="schemes_calculate">Calculate</button>
+        </div>
+        <div class="result-strip" id="kvpResults" style="display:none;">
+          <div class="result-tile navy"><div class="k" data-i18n="schemes_maturity">Maturity amount</div><div class="v" id="kvpResultMaturity">—</div></div>
+          <div class="result-tile navy"><div class="k" data-i18n="schemes_invested">Total invested</div><div class="v" id="kvpResultInvested">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="schemes_interest">Interest earned</div><div class="v" id="kvpResultInterest">—</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="schemes_ssy">Sukanya Samriddhi Yojana (SSY)</h2>
+        <div class="disclaimer" data-i18n="schemes_ssy_note">SSY note.</div>
+        <div class="field-grid" style="margin-top:12px;">
+          <div class="field">
+            <label data-i18n="schemes_ssy_contribution">Annual contribution (₹, max ₹1,50,000)</label>
+            <input type="number" id="ssyContribution" value="150000" min="250" max="150000">
+          </div>
+          <div class="field">
+            <label data-i18n="schemes_rate">Interest rate (% p.a.)</label>
+            <input type="number" id="ssyRate" step="0.01" min="0">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="ssyCalcBtn" data-i18n="schemes_calculate">Calculate</button>
+        </div>
+        <div class="result-strip" id="ssyResults" style="display:none;">
+          <div class="result-tile navy"><div class="k" data-i18n="schemes_maturity">Maturity amount</div><div class="v" id="ssyResultMaturity">—</div></div>
+          <div class="result-tile navy"><div class="k" data-i18n="schemes_invested">Total invested</div><div class="v" id="ssyResultInvested">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="schemes_interest">Interest earned</div><div class="v" id="ssyResultInterest">—</div></div>
+        </div>
+        <div class="btn-row no-print">
+          <button class="btn ghost small" id="ssyExportCsv" data-i18n="schemes_export_csv">Export year-wise growth (Excel/CSV)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="schemes_scss">Senior Citizen Savings Scheme (SCSS)</h2>
+        <div class="field-grid">
+          <div class="field">
+            <label data-i18n="schemes_scss_amount">Investment amount (₹, max ₹30,00,000)</label>
+            <input type="number" id="scssAmount" value="3000000" min="0" max="3000000">
+          </div>
+          <div class="field">
+            <label data-i18n="schemes_rate">Interest rate (% p.a.)</label>
+            <input type="number" id="scssRate" step="0.01" min="0">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="scssCalcBtn" data-i18n="schemes_calculate">Calculate</button>
+        </div>
+        <div class="result-strip" id="scssResults" style="display:none;">
+          <div class="result-tile navy"><div class="k" data-i18n="schemes_invested">Total invested</div><div class="v" id="scssResultInvested">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="schemes_quarterly_payout">Quarterly interest payout</div><div class="v" id="scssResultQuarterly">—</div></div>
+          <div class="result-tile"><div class="k" data-i18n="schemes_interest">Interest earned</div><div class="v" id="scssResultInterest">—</div></div>
+          <div class="result-tile navy"><div class="k" data-i18n="schemes_total_received">Total received</div><div class="v" id="scssResultTotal">—</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="view" data-view="settings">
+      <h1 class="view-title" data-i18n="settings_title">Settings</h1>
+
+      <div class="card">
+        <h2 data-i18n="settings_language">Language</h2>
+        <div class="lang-switch" style="background:#eef1f4;">
+          <button data-lang="en" style="color:#333;">EN</button>
+          <button data-lang="hi" style="color:#333;">हिंदी</button>
+          <button data-lang="gu" style="color:#333;">ગુજરાતી</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="settings_live_title">Automatic Rate Updates</h2>
+        <p class="about-list" id="liveRatesStatusText" data-i18n="settings_live_checking">Checking for live rates…</p>
+        <div class="disclaimer" id="liveRatesStaleWarning" style="display:none;"></div>
+        <div class="rate-grid" style="margin-top:10px;">
+          <div class="field">
+            <label data-i18n="settings_live_repo_verified">Repo rate last verified</label>
+            <div class="result-tile navy" style="padding:8px 10px;"><span class="v" id="liveRatesRepoVerified" style="font-size:13px;">—</span></div>
+          </div>
+          <div class="field">
+            <label data-i18n="settings_live_schemes_verified">Scheme rates last verified</label>
+            <div class="result-tile navy" style="padding:8px 10px;"><span class="v" id="liveRatesSchemesVerified" style="font-size:13px;">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="settings_rates">Current Rates (editable)</h2>
+        <div class="disclaimer" data-i18n="settings_rates_hint">Rates hint.</div>
+        <div class="rate-grid" style="margin-top:14px;">
+          <div class="field"><label data-i18n="loan_repo_rate">RBI repo rate (%)</label><input type="number" id="rateRepo" step="0.01"></div>
+          <div class="field"><label data-i18n="schemes_ppf">PPF (%)</label><input type="number" id="ratePpf" step="0.01"></div>
+          <div class="field"><label data-i18n="schemes_nsc">NSC (%)</label><input type="number" id="rateNsc" step="0.01"></div>
+          <div class="field"><label data-i18n="schemes_kvp">KVP (%)</label><input type="number" id="rateKvp" step="0.01"></div>
+          <div class="field"><label data-i18n="schemes_ssy">SSY (%)</label><input type="number" id="rateSsy" step="0.01"></div>
+          <div class="field"><label data-i18n="schemes_scss">SCSS (%)</label><input type="number" id="rateScss" step="0.01"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn accent" id="settingsSaveBtn" data-i18n="settings_save">Save rates</button>
+          <span class="hint" id="settingsSavedMsg" style="display:none; align-self:center; color:#1f9d78; font-weight:600;" data-i18n="settings_saved">Saved.</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="settings_install">Install this app</h2>
+        <p class="about-list" data-i18n="settings_install_text">Install text.</p>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="settings_export">Data export</h2>
+        <p class="about-list" data-i18n="settings_export_text">Export text.</p>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="settings_about">About FinCalc CB</h2>
+        <p class="about-list">FinCalc CB v1.0 — offline financial calculator suite. Rates last checked: Aug–Sep 2026 (RBI repo rate, FY 2026-27 income tax slabs, GST 2.0 rates, Jul–Sep 2026 small-savings rates).</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="app-footer" data-i18n="footer_note">All figures are estimates.</footer>
+
+<script src="js/i18n.js"></script>
+<script src="js/calc.js"></script>
+<script src="js/export.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
