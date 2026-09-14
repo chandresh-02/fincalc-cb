@@ -1,0 +1,46 @@
+name: Update rates.json
+
+on:
+  schedule:
+    # 04:17 UTC daily (~09:47 IST). Off the top of the hour on purpose —
+    # avoids the crowd of workflows that all trigger exactly on :00.
+    - cron: '17 4 * * *'
+  workflow_dispatch: {}   # lets you trigger a run manually from the Actions tab, to test
+
+permissions:
+  contents: write   # needed to commit rates.json back to the repo
+
+jobs:
+  update-rates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install beautifulsoup4
+
+      - name: Run scraper
+        # rates.json is written at the repo root (next to index.html) so the
+        # app can fetch it with a plain relative path — not inside scraper/.
+        # scrape_rates.py's default output_path="rates.json" resolves
+        # relative to the working directory below, i.e. the repo root.
+        run: python scraper/scrape_rates.py
+        working-directory: .
+
+      - name: Commit and push if rates.json changed
+        run: |
+          if git diff --quiet rates.json; then
+            echo "No change in rates.json — nothing to commit."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add rates.json
+            git commit -m "chore: update rates.json [automated]"
+            git push
+          fi
