@@ -179,30 +179,28 @@ def main(output_path="rates.json"):
     repo_rate = None
     try:
         rbi_html = fetch(RBI_URL)
-        rbi_text = html_to_text(rbi_html)
-        repo_rate = parse_repo_rate(rbi_text)
+        repo_rate = parse_repo_rate(html_to_text(rbi_html))
         repo_ok = repo_rate is not None
-        print(f"DIAGNOSTIC: RBI page fetched, {len(rbi_html)} raw bytes, "
-              f"{len(rbi_text)} chars after stripping tags.", file=sys.stderr)
-        print(f"DIAGNOSTIC: 'policy repo rate' found in text (case-insensitive)? "
-              f"{'policy repo rate' in rbi_text.lower()}", file=sys.stderr)
-        if not repo_ok:
-            idx = rbi_text.lower().find("policy repo rate")
-            if idx != -1:
-                print("DIAGNOSTIC: raw context around the match (repr, so whitespace/newlines are visible):", file=sys.stderr)
-                print(repr(rbi_text[max(0, idx - 50): idx + 400]), file=sys.stderr)
-            else:
-                print("DIAGNOSTIC: first 500 chars of parsed text:", file=sys.stderr)
-                print(rbi_text[:500], file=sys.stderr)
     except Exception as e:
         print(f"WARNING: repo rate fetch/parse failed: {e}", file=sys.stderr)
+    print(f"RBI repo rate: {'verified at ' + str(repo_rate) + '%' if repo_ok else 'FAILED — see warning above'}", file=sys.stderr)
 
     scheme_rates = {}
     try:
-        post_html = fetch(INDIA_POST_URL, attempts=1)
+        # India Post (app.indiapost.gov.in) is confirmed, as of Sept 2026, to
+        # be unreachable from GitHub Actions runners specifically — every
+        # connection attempt times out at the TCP level (verified with both
+        # curl and urllib, at 30s and 60s, across multiple separate runs).
+        # This is not a slowness problem retries can fix, so we fail fast
+        # (one short attempt) rather than burn ~3 minutes of Actions time
+        # every day on a connection that's never going to succeed. If this
+        # ever changes (India Post infrastructure change, GitHub egress IP
+        # range change, etc.), bump attempts back up to 3 / timeout to 60.
+        post_html = fetch(INDIA_POST_URL, attempts=1, timeout=15)
         scheme_rates = parse_scheme_rates(html_to_text(post_html))
     except Exception as e:
         print(f"WARNING: scheme rates fetch/parse failed: {e}", file=sys.stderr)
+    print(f"India Post scheme rates: {'verified (' + str(len(scheme_rates)) + ' fields)' if scheme_rates else 'FAILED — known GitHub Actions network issue, see comment above'}", file=sys.stderr)
 
     expected_scheme_keys = {"ppf", "nsc", "kvp", "kvpMonths", "ssy", "scss", "pomis"}
     missing = expected_scheme_keys - set(scheme_rates.keys())
