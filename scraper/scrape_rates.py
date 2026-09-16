@@ -75,36 +75,37 @@ def _in_bounds(value, bounds_key):
 
 
 def parse_repo_rate(text):
-    value = _number_near(text, r"Policy Repo Rate", window=60)
+    """Returns float or None."""
+    value = _number_near(text, r"Policy Repo Rate", window=150)
     return value if _in_bounds(value, "repoRate") else None
 
 
 def parse_scheme_rates(text):
     result = {}
 
-    ppf = _number_near(text, r"Public Provident Fund Account\s*\(PPF\)", window=250)
+    ppf = _number_near(text, r"Public Provident Fund Account\s*\(PPF\)", window=400)
     if _in_bounds(ppf, "ppf"):
         result["ppf"] = ppf
 
-    nsc = _number_near(text, r"National Savings Certificates.*?\(NSC\)", window=250)
+    nsc = _number_near(text, r"National Savings Certificates.*?\(NSC\)", window=400)
     if _in_bounds(nsc, "nsc"):
         result["nsc"] = nsc
 
-    scss = _number_near(text, r"Senior Citizens Savings Scheme Account\s*\(SCSS\)", window=250)
+    scss = _number_near(text, r"Senior Citizens Savings Scheme Account\s*\(SCSS\)", window=400)
     if _in_bounds(scss, "scss"):
         result["scss"] = scss
 
-    ssy = _number_near(text, r"Sukanya Samriddhi Account\s*\(SSA\)", window=250)
+    ssy = _number_near(text, r"Sukanya Samriddhi Account\s*\(SSA\)", window=400)
     if _in_bounds(ssy, "ssy"):
         result["ssy"] = ssy
 
-    pomis = _number_near(text, r"National Savings Monthly Income Account\s*\(MIS\)", window=250)
+    pomis = _number_near(text, r"National Savings Monthly Income Account\s*\(MIS\)", window=400)
     if _in_bounds(pomis, "pomis"):
         result["pomis"] = pomis
 
     kvp_heading = re.search(r"Kisan Vikas Patra\s*\(KVP\)", text, re.IGNORECASE)
     if kvp_heading:
-        segment = text[kvp_heading.end(): kvp_heading.end() + 400]
+        segment = text[kvp_heading.end(): kvp_heading.end() + 600]
         rate_m = re.search(r"(\d+\.\d+|\d+)\s*%", segment)
         months_m = re.search(r"doubles?\s+in\s+(\d+)\s+months", segment, re.IGNORECASE)
         if rate_m:
