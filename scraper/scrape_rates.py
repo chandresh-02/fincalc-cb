@@ -29,9 +29,6 @@ USER_AGENT = (
     "contact via repo issues)"
 )
 
-# Sane bounds — reject anything outside these ranges rather than publish
-# a mis-scraped value. Wide enough to survive real rate moves, narrow
-# enough to catch a scraper reading the wrong number.
 BOUNDS = {
     "repoRate": (2.0, 12.0),
     "ppf": (4.0, 12.0),
@@ -45,10 +42,6 @@ KVP_MONTHS_BOUNDS = (80, 140)
 
 
 def html_to_text(html):
-    """Flatten HTML to plain text. Uses BeautifulSoup if available (real
-    scrape run); falls back to a crude tag-stripper so the parsing
-    functions below can also run directly against the plain-text
-    fixtures used in tests without requiring bs4 there."""
     try:
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(html, "html.parser")
@@ -61,8 +54,6 @@ def html_to_text(html):
 
 
 def _number_near(text, heading_pattern, window):
-    """Find heading_pattern, then the first '<digits>[.<digits>]%' within
-    `window` characters after it. Returns float or None."""
     m = re.search(heading_pattern, text, re.IGNORECASE)
     if not m:
         return None
@@ -84,15 +75,11 @@ def _in_bounds(value, bounds_key):
 
 
 def parse_repo_rate(text):
-    """Returns float or None."""
     value = _number_near(text, r"Policy Repo Rate", window=60)
     return value if _in_bounds(value, "repoRate") else None
 
 
 def parse_scheme_rates(text):
-    """Returns a dict with only the keys that were found AND passed their
-    sanity bounds. Missing/rejected keys are simply absent — caller merges
-    this onto the previous known-good rates.json."""
     result = {}
 
     ppf = _number_near(text, r"Public Provident Fund Account\s*\(PPF\)", window=250)
@@ -115,7 +102,6 @@ def parse_scheme_rates(text):
     if _in_bounds(pomis, "pomis"):
         result["pomis"] = pomis
 
-    # KVP: rate + maturity months, both drawn from the same KVP block
     kvp_heading = re.search(r"Kisan Vikas Patra\s*\(KVP\)", text, re.IGNORECASE)
     if kvp_heading:
         segment = text[kvp_heading.end(): kvp_heading.end() + 400]
@@ -135,10 +121,6 @@ def parse_scheme_rates(text):
 
 
 def build_output(previous, repo_rate, scheme_rates, repo_ok, schemes_found):
-    """Merge freshly-scraped values onto the previous known-good file.
-    Any field that wasn't found/valid this run keeps its previous value,
-    so a partial page-structure change degrades gracefully instead of
-    wiping out unrelated fields."""
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     out = dict(previous) if previous else {}
 
@@ -163,10 +145,6 @@ def build_output(previous, repo_rate, scheme_rates, repo_ok, schemes_found):
 
 
 def fetch(url, attempts=3, timeout=60, backoff_seconds=5):
-    """Fetch a URL with retries and a generous timeout. Indian government
-    sites are sometimes just slow to respond to requests from GitHub's
-    (US/EU-hosted) runners — a single 30s timeout on the first attempt
-    isn't enough evidence of an actual block, so we retry before giving up."""
     import urllib.request
     import time
 
@@ -203,23 +181,24 @@ def main(output_path="rates.json"):
         rbi_text = html_to_text(rbi_html)
         repo_rate = parse_repo_rate(rbi_text)
         repo_ok = repo_rate is not None
-        # Diagnostic output — safe to remove once this is working reliably.
-        # Helps tell "page structure changed" apart from "bot-check page
-        # served instead of the real content" without needing local access
-        # to the source site.
         print(f"DIAGNOSTIC: RBI page fetched, {len(rbi_html)} raw bytes, "
               f"{len(rbi_text)} chars after stripping tags.", file=sys.stderr)
         print(f"DIAGNOSTIC: 'policy repo rate' found in text (case-insensitive)? "
               f"{'policy repo rate' in rbi_text.lower()}", file=sys.stderr)
         if not repo_ok:
-            print("DIAGNOSTIC: first 500 chars of parsed text:", file=sys.stderr)
-            print(rbi_text[:500], file=sys.stderr)
+            idx = rbi_text.lower().find("policy repo rate")
+            if idx != -1:
+                print("DIAGNOSTIC: raw context around the match (repr, so whitespace/newlines are visible):", file=sys.stderr)
+                print(repr(rbi_text[max(0, idx - 50): idx + 400]), file=sys.stderr)
+            else:
+                print("DIAGNOSTIC: first 500 chars of parsed text:", file=sys.stderr)
+                print(rbi_text[:500], file=sys.stderr)
     except Exception as e:
         print(f"WARNING: repo rate fetch/parse failed: {e}", file=sys.stderr)
 
     scheme_rates = {}
     try:
-        post_html = fetch(INDIA_POST_URL)
+        post_html = fetch(INDIA_POST_URL, attempts=1)
         scheme_rates = parse_scheme_rates(html_to_text(post_html))
     except Exception as e:
         print(f"WARNING: scheme rates fetch/parse failed: {e}", file=sys.stderr)
@@ -241,9 +220,6 @@ def main(output_path="rates.json"):
 
     print(f"Wrote {output_path}: {json.dumps(output, indent=2, ensure_ascii=False)}")
 
-    # Exit non-zero only if BOTH sources failed entirely — a partial
-    # success (e.g. repo rate ok, one scheme field missing) still writes
-    # a valid file and should not fail the workflow.
     if not repo_ok and not scheme_rates:
         print("ERROR: both sources failed completely.", file=sys.stderr)
         sys.exit(1)
