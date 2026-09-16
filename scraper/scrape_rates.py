@@ -200,8 +200,20 @@ def main(output_path="rates.json"):
     repo_rate = None
     try:
         rbi_html = fetch(RBI_URL)
-        repo_rate = parse_repo_rate(html_to_text(rbi_html))
+        rbi_text = html_to_text(rbi_html)
+        repo_rate = parse_repo_rate(rbi_text)
         repo_ok = repo_rate is not None
+        # Diagnostic output — safe to remove once this is working reliably.
+        # Helps tell "page structure changed" apart from "bot-check page
+        # served instead of the real content" without needing local access
+        # to the source site.
+        print(f"DIAGNOSTIC: RBI page fetched, {len(rbi_html)} raw bytes, "
+              f"{len(rbi_text)} chars after stripping tags.", file=sys.stderr)
+        print(f"DIAGNOSTIC: 'policy repo rate' found in text (case-insensitive)? "
+              f"{'policy repo rate' in rbi_text.lower()}", file=sys.stderr)
+        if not repo_ok:
+            print("DIAGNOSTIC: first 500 chars of parsed text:", file=sys.stderr)
+            print(rbi_text[:500], file=sys.stderr)
     except Exception as e:
         print(f"WARNING: repo rate fetch/parse failed: {e}", file=sys.stderr)
 
