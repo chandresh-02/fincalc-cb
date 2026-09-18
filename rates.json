@@ -1,6 +1,6 @@
 {
   "repoRate": 5.25,
-  "repoLastVerified": "2026-09-17T04:32:39+00:00",
+  "repoLastVerified": "2026-09-18T04:31:21+00:00",
   "ppf": 7.1,
   "nsc": 7.7,
   "kvp": 7.5,
@@ -9,7 +9,7 @@
   "scss": 8.2,
   "pomis": 7.4,
   "schemesLastVerified": "2026-09-11T06:06:43+00:00",
-  "generatedAt": "2026-09-17T04:32:39+00:00",
+  "generatedAt": "2026-09-18T04:31:21+00:00",
   "sources": {
     "repoRate": "https://www.rbi.org.in/Home.aspx/Home.aspx/home.aspx",
     "schemes": "https://app.indiapost.gov.in/banking-services/saving"
